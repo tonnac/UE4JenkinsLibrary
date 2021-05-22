@@ -10,9 +10,20 @@ enum BuildConfiguration
 	DebugGame
 }
 
+enum Platform
+{
+	Win64,
+	Android
+}
+
 def GetBuildConfigurationChoices()
 {
 	return Arrays.toString(BuildConfiguration.values()).replaceAll('^.|.$', "").split(", ").join("\n")
+}
+
+def GetTargetPlatformChoices()
+{
+	return Arrays.toString(Platform.values()).replaceAll('^.|.$', "").split(", ").join("\n")
 }
 
 /* Project Specific Directories */
@@ -57,6 +68,7 @@ def Initialise(String projectName, String engineDir, String projectDir = "", Str
 	ProjectName		= projectName
 	EngineDir		= engineDir
 
+
 	if(projectDir == "")
 	{
 		projectDir	= "${EngineDir}/${ProjectName}"
@@ -86,7 +98,7 @@ def Setup()
 /* Generate Project files for the initialised project */
 def GenerateProjectFiles()
 {
-	RunCommand("\"${BatchDir}/GenerateProjectFiles.${ScriptInvocationType}\" -projectfiles -project=${ProjectFile} -game -engine -progress ${DefaultArguments}")
+	RunCommand("${UBT} -projectfiles -project=${ProjectFile} -game -rocket -progress ${DefaultArguments}")
 }
 
 /** 
@@ -138,7 +150,8 @@ def RunBuildGraph(String scriptPath, String target, def parameters, String addit
  */ 
 def CookProject(String platforms = "WindowsNoEditor", String mapsToCook = "", boolean iterative = true, String additionalArguments = "-fileopenlog")
 {
-	 RunCommand("${UE4_CMD} ${ProjectFile} -run=Cook -targetplatform=${platforms} -map=${mapsToCook} ${additionalArguments} ${DefaultArguments}" + (iterative ? " -iterate -iterateshash" : ""))
+	 RunCommand("${UE4_CMD} ${ProjectFile} -run=Cook -targetplatform=${platforms} ${additionalArguments} ${DefaultArguments}" + (iterative ? " -iterate -iterateshash" : ""))
+	//  RunCommand("${UE4_CMD} ${ProjectFile} -run=Cook -targetplatform=${platforms} -map=${mapsToCook} ${additionalArguments} ${DefaultArguments}" + (iterative ? " -iterate -iterateshash" : ""))
 }
 
 /** 
@@ -153,7 +166,7 @@ def CookProject(String platforms = "WindowsNoEditor", String mapsToCook = "", bo
  */ 
 def PackageProject(String platform, BuildConfiguration buildConfiguration, String stagingDir, boolean usePak = true, boolean iterative = true, String cmdlineArguments = "", String additionalArguments = "")
 {
-	RunCommand("${UAT} BuildCookRun -project=${ProjectFile} -platform=${platform} -skipcook -skipbuild -nocompileeditor -NoSubmit -stage -package -clientconfig=" + buildConfiguration.name() + " -StagingDirectory=\"${stagingDir}\"" + (usePak ? " -pak " : " ") + " -cmdline=\"${cmdlineArguments}\" " + "${additionalArguments} ${DefaultArguments}")
+	RunCommand("${UAT} BuildCookRun -project=${ProjectFile} -targetplatform=${platform} -skipcook -skipbuild -nocompileeditor -NoSubmit -stage -package -clientconfig=" + buildConfiguration.name() + " -StagingDirectory=\"${stagingDir}\"" + (usePak ? " -pak " : " ") + " -cmdline=\"${cmdlineArguments}\" " + "${additionalArguments} ${DefaultArguments}")
 }
 
 /**
